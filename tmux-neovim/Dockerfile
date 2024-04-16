@@ -71,7 +71,7 @@ RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 # Copy all the needed configurations into /root
 COPY config/. /root/
 
-# RUN ln -s ~/.dotfiles/* /root
+WORKDIR /workspace
 
-# Set the entrypoint to "tmux new -A"
-ENTRYPOINT ["/bin/bash", "-c", "cd /root && ~/.tmux/plugins/tpm/scripts/install_plugins.sh && tmux -u"]
+# Set the entrypoint to run tmux at start
+ENTRYPOINT ["/bin/bash", "-c", "~/.tmux/plugins/tpm/scripts/install_plugins.sh && bash"]
