@@ -1,0 +1,13 @@
+services:
+  devcontainer:
+    # image: tmux-neovim
+    build:
+      dockerfile: Dockerfile
+      context: .
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    volumes:
+      - /home/davos/Projects:/workspace
+
+# sudo docker compose up -d
+# sudo docker exec -it tmux-neovim-devcontainer-1 tmux -u new -A
