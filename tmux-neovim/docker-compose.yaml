@@ -1,13 +1,16 @@
 services:
   devcontainer:
-    # image: tmux-neovim
+    image: dev2dy/tmux-neovim
+    container_name: tmux-neovim-devcontainer
     build:
       dockerfile: Dockerfile
       context: .
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
+      args:
+        UID: 1000
+        GID: 1000
+        UNAME: user
+    stdin_open: true    # docker run -i
+    tty: true           # docker run -t
     volumes:
-      - /home/davos/Projects:/workspace
-
-# sudo docker compose up -d
-# sudo docker exec -it tmux-neovim-devcontainer-1 tmux -u new -A
+      - ${HOME}/Projects:/workspace
+      - ${HOME}/.ssh:${HOME}/.ssh:ro  # To be able to git push from container

@@ -55,6 +55,14 @@ RUN apt-get update && apt-get install -y \
 
 ENV TERM xterm-256color
 
+ARG UID=1000
+ARG GID=1000
+ARG UNAME=user
+
+RUN groupadd -g $GID -o $UNAME
+RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
+USER $UNAME
+
 # Copy neovim artifact from the neovim-builder phase
 COPY --from=neovim-builder /usr/local/bin/nvim /usr/local/bin/nvim
 COPY --from=neovim-builder /usr/local/share/nvim /usr/local/share/nvim
@@ -69,7 +77,7 @@ RUN sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc
 RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Copy all the needed configurations into /root
-COPY config/. /root/
+COPY --chown=$UNAME:$UNAME config/. /home/$UNAME
 
 WORKDIR /workspace
 
