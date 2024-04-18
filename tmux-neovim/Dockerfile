@@ -48,19 +48,28 @@ FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
     libevent-dev \
     ncurses-dev \
+    ripgrep \
     python3 \
+    python3.10-venv \
+    pip \
     gcc \
     git \
-    ripgrep
+    sudo
 
 ENV TERM xterm-256color
 
+# Create new user
 ARG UID=1000
 ARG GID=1000
 ARG UNAME=user
 
 RUN groupadd -g $GID -o $UNAME
-RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
+RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME \
+    && mkdir -p /etc/sudoers.d \
+    && echo "$UNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$UNAME \
+    && chmod 0440 /etc/sudoers.d/$UNAME
+
+# Change user to new user
 USER $UNAME
 
 # Copy neovim artifact from the neovim-builder phase

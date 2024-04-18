@@ -11,7 +11,10 @@ It is good to keep the container as is and not recreate it each time. That is wh
     This will create a user based on the host user inside the container. This allowes writing access for the files.
 
     ```
-    docker compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg UNAME=$USER
+    docker compose build \
+        --build-arg UID=$(id -u) \
+        --build-arg GID=$(id -g) \
+        --build-arg UNAME=$USER
     ```
 
 * ### Start container
