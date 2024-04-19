@@ -13,4 +13,5 @@ services:
     tty: true           # docker run -t
     volumes:
       - ${HOME}/Projects:/workspace
-      - ${HOME}/.ssh:${HOME}/.ssh:ro  # To be able to git push from container
+      - ${HOME}/.gitconfig:${HOME}/.gitconfig:ro  # To be able to git push from container
+      - ${HOME}/.ssh:${HOME}/.ssh:ro              # To be able to git push from container

@@ -42,6 +42,20 @@ RUN git clone https://github.com/tmux/tmux.git /tmp/tmux
 RUN cd /tmp/tmux && sh autogen.sh && ./configure && make && make install
 
 
+# Use a base image with the necessary build tools and dependencies for lazygit
+FROM ubuntu:22.04 AS lazygit-builder
+
+# Install build dependencies for tmux
+RUN apt-get update && apt-get install -y \
+    curl
+
+# Install lazygit
+RUN export LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*') \
+    && curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" \
+    && tar xf lazygit.tar.gz lazygit \
+    && install lazygit /usr/local/bin
+
+
 # Create a new image for the runtime phase
 FROM ubuntu:22.04
 
@@ -49,9 +63,6 @@ RUN apt-get update && apt-get install -y \
     libevent-dev \
     ncurses-dev \
     ripgrep \
-    python3 \
-    python3.10-venv \
-    pip \
     gcc \
     git \
     sudo
@@ -79,13 +90,16 @@ COPY --from=neovim-builder /usr/local/share/nvim /usr/local/share/nvim
 # Copy tmux artifact from the tmux-builder phase
 COPY --from=tmux-builder /usr/local/bin/tmux /usr/local/bin/tmux
 
+# Copy lazygit artifact from the lazygit-builder phase
+COPY --from=lazygit-builder /usr/local/bin/lazygit /usr/local/bin/lazygit
+
 # Uncomment the "force_color_prompt=yes" to show color in prompt
 RUN sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc
 
 # Clone Tmux plugin manager
 RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
-# Copy all the needed configurations into /root
+# Copy all the needed configurations into user's folder
 COPY --chown=$UNAME:$UNAME config/. /home/$UNAME
 
 WORKDIR /workspace
