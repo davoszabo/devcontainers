@@ -6,12 +6,19 @@ services:
       dockerfile: Dockerfile
       context: .
       args:
-        UID: 1000
-        GID: 1000
-        UNAME: user
+        UNAME: ${USER}
+        MY_UID: ${MY_UID}
+        MY_GID: ${MY_GID}
+    # user: ${MY_UID}:${MY_GID}
+    group_add:
+      - ${DOCKER_GID}
     stdin_open: true    # docker run -i
     tty: true           # docker run -t
     volumes:
-      - ${HOME}/Projects:/workspace
-      - ${HOME}/.gitconfig:${HOME}/.gitconfig:ro  # To be able to git push from container
-      - ${HOME}/.ssh:${HOME}/.ssh:ro              # To be able to git push from container
+      - ${HOME}/Projects:${HOME}/Projects
+      - ${HOME}/.gitconfig:${HOME}/.gitconfig:ro      # To be able to git push from container
+      - ${HOME}/.ssh:${HOME}/.ssh:ro                  # To be able to git push from container
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # To be able to access host docker daemon from container
+      - /etc/group:/etc/group:ro                      # For correct handle of user and groups
+      # - /etc/passwd:/etc/passwd:ro                    # For correct handle of user and groups (only if "user" parameter used)
+      # - /etc/shadow:/etc/shadow:ro                    # For sudo (only if "user" parameter used)
