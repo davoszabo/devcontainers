@@ -67,7 +67,8 @@ RUN apt-get update && apt-get install -y \
     ripgrep \
     gcc \
     git \
-    sudo
+    sudo \ 
+    curl
 
 ENV TERM xterm-256color
 
@@ -113,9 +114,12 @@ RUN sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc
 
 # Copy all the needed configurations into user's folder
 COPY --chown=$UNAME:$UNAME config/. /home/$UNAME
-COPY --chown=$UNAME:$UNAME install_plugins /home/$UNAME/install_plugins
+COPY --chown=$UNAME:$UNAME install_packages /home/$UNAME/install_packages
 
 WORKDIR /home/$UNAME
 
+COPY ./entrypoint.sh /
+RUN sudo chmod +x /entrypoint.sh
+
 # Set the entrypoint to run tmux at start
-ENTRYPOINT ["/bin/bash", "-c", "~/.tmux/plugins/tpm/scripts/install_plugins.sh && bash"]
+ENTRYPOINT ["/entrypoint.sh"]
