@@ -55,6 +55,8 @@ RUN export LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield
     && tar xf lazygit.tar.gz lazygit \
     && install lazygit /usr/local/bin
 
+# Creating base editor image
+# ==========================
 
 # Create a new image for the runtime phase
 FROM ubuntu:22.04
@@ -73,9 +75,11 @@ ENV TERM xterm-256color
 ARG UNAME
 ARG MY_UID
 ARG MY_GID
+ARG DOCKER_GID
 
 RUN groupadd -g $MY_GID -o $UNAME
-RUN useradd -m -u $MY_UID -g $MY_GID -o -s /bin/bash $UNAME
+RUN groupadd -g $DOCKER_GID -o docker
+RUN useradd -m -u $MY_UID -g $MY_GID -G docker -o -s /bin/bash $UNAME
 RUN mkdir -p /etc/sudoers.d \
     && echo "$UNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$UNAME \
     && chmod 0440 /etc/sudoers.d/$UNAME
@@ -99,6 +103,7 @@ RUN ln -s /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/bin/do
 USER $UNAME
 
 # Changeing user specific settings
+# ================================
 
 # Clone Tmux plugin manager
 RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -108,11 +113,9 @@ RUN sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc
 
 # Copy all the needed configurations into user's folder
 COPY --chown=$UNAME:$UNAME config/. /home/$UNAME
+COPY --chown=$UNAME:$UNAME install_plugins /home/$UNAME/install_plugins
 
 WORKDIR /home/$UNAME
-
-# TODO: run TSInstall jsonc somehow
-
 
 # Set the entrypoint to run tmux at start
 ENTRYPOINT ["/bin/bash", "-c", "~/.tmux/plugins/tpm/scripts/install_plugins.sh && bash"]
