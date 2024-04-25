@@ -17,6 +17,7 @@ services:
       # Semilcolon separated variable e.g: "python3;kubectl" (See available packages in /install_packages)
       INSTALL: "python3;kubectl"
       DISPLAY: ${DISPLAY}
+    restart: unless-stopped
     stdin_open: true    # docker run -i
     tty: true           # docker run -t
     volumes:

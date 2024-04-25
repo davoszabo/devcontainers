@@ -1,6 +1,6 @@
 # Overview
 
-Containerized development environment, which contains `TMUX`, `NEOVIM`, `GIT` and more.
+Containerized development environment, which contains `TMUX`, `NEOVIM`, `LAZYGIT` and more.
 
 ## Usage
 
