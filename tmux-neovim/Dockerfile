@@ -1,3 +1,7 @@
+
+# NEOVIM
+# ====================
+
 # Use a base image with the necessary build tools and dependencies for neovim
 FROM ubuntu:22.04 AS neovim-builder
 
@@ -21,6 +25,10 @@ RUN cd /tmp/neovim && git checkout stable
 RUN cd /tmp/neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo && make install
 
 
+
+# TMUX
+# ====================
+
 # Use a base image with the necessary build tools and dependencies for tmux
 FROM ubuntu:22.04 AS tmux-builder
 
@@ -42,6 +50,10 @@ RUN git clone https://github.com/tmux/tmux.git /tmp/tmux
 RUN cd /tmp/tmux && sh autogen.sh && ./configure && make && make install
 
 
+
+# LAZYGIT
+# ====================
+
 # Use a base image with the necessary build tools and dependencies for lazygit
 FROM ubuntu:22.04 AS lazygit-builder
 
@@ -55,6 +67,7 @@ RUN export LAZYGIT_VERSION=0.41.0 \
     && curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" \
     && tar xf lazygit.tar.gz lazygit \
     && install lazygit /usr/local/bin
+
 
 # Creating base editor image
 # ==========================
@@ -72,20 +85,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     xclip
 
-ENV TERM xterm-256color
-
-# Create new user
-ARG UNAME
-ARG MY_UID
-ARG MY_GID
-ARG DOCKER_GID
-
-RUN groupadd -g $MY_GID -o $UNAME
-RUN groupadd -g $DOCKER_GID -o docker
-RUN useradd -m -u $MY_UID -g $MY_GID -G docker -o -s /bin/bash $UNAME
-RUN mkdir -p /etc/sudoers.d \
-    && echo "$UNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$UNAME \
-    && chmod 0440 /etc/sudoers.d/$UNAME
+# Add wheel to sudoers list
+RUN echo "%wheel  ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers
 
 # Copy neovim artifact from the neovim-builder phase
 COPY --from=neovim-builder /usr/local/bin/nvim /usr/local/bin/nvim
@@ -102,23 +103,14 @@ COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
 COPY --from=docker:dind /usr/local/libexec/docker/cli-plugins /usr/local/libexec/docker/cli-plugins
 RUN ln -s /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 
-# Change user to new user
-USER $UNAME
-
-# Changeing user specific settings
-# ================================
 
 # Clone Tmux plugin manager
-RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-
-# Uncomment the "force_color_prompt=yes" to show color in prompt
-RUN sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc
+# RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Copy all the needed configurations into user's folder
-COPY --chown=$UNAME:$UNAME config/. /home/$UNAME
-COPY --chown=$UNAME:$UNAME install_packages /home/$UNAME/install_packages
+# COPY --chown=$UNAME:$UNAME install_packages $HOME/install_packages
 
-WORKDIR /home/$UNAME
+# WORKDIR ${HOME}
 
 COPY ./entrypoint.sh /
 RUN sudo chmod +x /entrypoint.sh
