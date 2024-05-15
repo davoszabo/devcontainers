@@ -69,6 +69,14 @@ RUN export LAZYGIT_VERSION=0.41.0 \
     && install lazygit /usr/local/bin
 
 
+
+# DEVCONTAINER-CLI
+# ====================
+FROM mcr.microsoft.com/devcontainers/typescript-node:1-18-bookworm as devcontainercli-builder
+
+RUN npm install -g @devcontainers/cli
+
+
 # Creating base editor image
 # ==========================
 
@@ -103,6 +111,10 @@ COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
 COPY --from=docker:dind /usr/local/libexec/docker/cli-plugins /usr/local/libexec/docker/cli-plugins
 RUN ln -s /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 
+# Copy devcontainer-cli binaries
+COPY --from=devcontainercli-builder /usr/local/bin/node /usr/local/bin/node
+COPY --from=devcontainercli-builder /usr/local/share/npm-global/lib/node_modules/@devcontainers /usr/local/lib/devcontainer
+RUN ln -s /usr/local/lib/devcontainer/cli/devcontainer.js /usr/local/bin/devcontainer
 
 # Clone Tmux plugin manager
 # RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
